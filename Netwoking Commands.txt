@@ -1,0 +1,255 @@
+SSH(Secure Shell or Secure Socket Shell) configuration:
+Router>en
+Router#conf t
+Router(config)#hostname R1
+R1(config)#ip domain-name cisco.com
+R1(config)#crypto key generate rsa
+R1(config)#ip ssh version 2
+R1(config)#username admin privilege 15 secret cisco
+R1(config)#line vty 0
+R1(config-line)#transport input ssh
+R1(config-line)#login local
+R1(config-line)#exit
+R1(config)#interface fa0/0
+R1(config-if)#ip add 192.168.1.1 255.255.255.0
+R1(config-if)#no shutdown
+R1(config-if)#end
+R1#cop run s
+
+PC cmd:
+PC>ssh -l admin 192.168.1.1
+password:cisco
+
+
+
+Console port setup of router and switch:
+Go to terminal of pc connected to switch:
+Switch>enable
+Switch#configure terminal
+Switch(config)#line console 0
+Switch(config-line)#password 1234
+Switch(config-line)#login
+Switch(config-line)#exit
+Switch(config)#enable password class
+Switch(config)#exit
+Switch#copy running-config startup-config
+Switch#reload
+
+Go to terminal of pc connected to router:
+Router>enable
+Router#configure terminal
+Router(config)#line console 0
+Router(config-line)#password 1234
+Router(config-line)#login
+Router(config-line)#exit
+Router(config)#enable password class
+Router(config)#exit
+Router#copy running-config startup-config
+Router#reload
+
+
+
+Telnet:
+Router>en
+Router#conf t
+Router(config)#enable secret class
+Router(config-if)#line vty 0 5
+Router(config-line)#password 1234
+Router(config-line)#exit
+Router(config)#exit
+Router#wr
+
+PC command promt:
+PC>ping 192.168.1.1
+PC>telnet 192.168.1.1
+Password:1234
+Router>
+
+
+
+DHCP:
+Router>enable
+Router#configure terminal
+Router(config)#interface fa 0/0
+Router(config-if)#ip address 192.168.1.1 255.255.255.0
+Router(config-if)#no shutdown
+Router(config-if)#do write memory
+Router(config-if)#ip dhcp pool net1
+Router(dhcp-config)#network 192.168.1.0 255.255.255.0
+Router(dhcp-config)#exit
+
+Router(config)#interface fa 0/1
+Router(config-if)#ip address 192.168.2.1 255.255.255.0
+Router(config-if)#no shutdown
+Router(config-if)#do write memory
+Router(config-if)#ip dhcp pool net2
+Router(dhcp-config)#network 192.168.2.0 255.255.255.0
+Router(dhcp-config)#exit
+
+
+Static using CLI:
+Router0:
+Router>en
+Router#conf t
+Router(config)#interface fa 0/0
+Router(config-if)#ip address 192.168.10.1 255.255.255.0
+Router(config-if)#no shut
+Router(config-if)#int serial 0/0/0
+Router(config-if)#ip add 10.0.0.2 255.0.0.0
+Router(config-if)#no shut
+Router(config-if)#ex
+
+Router1:
+Router>en
+Router#conf t
+Router(config)#interface fa 0/0
+Router(config-if)#ip add 192.168.11.1 255.255.255.0
+Router(config-if)#no shut
+Router(config-if)#int serial 0/0/0
+Router(config-if)#ip add 10.0.0.3 255.0.0.0
+Router(config-if)#no shut
+Router(config-if)#int s 0/0/1
+Router(config-if)#ip add 11.0.0.2 255.0.0.0
+Router(config-if)#no shut
+Router(config-if)#ex
+
+Router2:
+Router>en
+Router#conf t
+Router(config)#interface fa 0/0
+Router(config-if)#ip add 192.168.12.1 255.255.255.0
+Router(config-if)#no shut
+Router(config-if)#int serial 0/0/0
+Router(config-if)#ip add 11.0.0.3 255.0.0.0
+Router(config-if)#no shut
+Router(config-if)#ex
+
+Router0:
+Router(config)#ip route 192.168.11.0 255.255.255.0 10.0.0.3
+Router(config)#ip route 192.168.12.0 255.255.255.0 10.0.0.3
+Router(config)#ip route 11.0.0.0 255.0.0.0 10.0.0.3
+Router(config)#exit
+
+
+Router1:
+Router(config)#ip route 192.168.10.0 255.255.255.0 10.0.0.2
+Router(config)#ip route 192.168.12.0 255.255.255.0 11.0.0.3
+Router(config)#exit
+
+
+Router2:
+Router(config)#ip route 192.168.11.0 255.255.255.0 11.0.0.2
+Router(config)#ip route 192.168.10.0 255.255.255.0 11.0.0.2
+Router(config)#ip route 10.0.0.0 255.0.0.0 11.0.0.2
+Router(config)#exit
+
+
+
+OSPF:
+Router0
+Router(config-if)#exit
+Router(config)# router ospf 1
+Router(config-router)#network 192.168.1.0 0.0.0.255 area 0
+Router(config-router)#network 10.0.0.0 0.255.255.255 area 0
+Router(config-router)#network 12.0.0.0 0.255.255.255 area 0
+Router(config-router)#exit
+
+Router1
+Router(config-if)#exit
+Router(config)# router ospf 1
+Router(config-router)#network 10.0.0.0 0.255.255.255 area 0
+Router(config-router)#network 11.0.0.0 0.255.255.255 area 0
+Router(config-router)#exit
+
+Router2
+Router(config-if)#exit
+Router(config)# router ospf 1
+Router(config-router)#network 192.168.2.0 0.0.0.255 area 0
+Router(config-router)#network 11.0.0.0 0.255.255.255 area 0
+Router(config-router)#network 12.0.0.0 0.255.255.255 area 0
+Router(config-router)#exit
+
+
+
+
+SSH:
+Router>enable
+Router#configure terminal
+Router(config)#hostname R1
+R1(config)#enable secret class
+R1(config)#line console 0
+R1(config-line)#password 1234
+R1(config-line)#login
+R1(config-line)#exit
+
+R1(config)#interface gigabitEthernet 0/0
+R1(config-if)#ip address 192.168.1.1 255.255.255.0
+R1(config-if)#no shutdown
+R1(config)#ctrl+z
+R1#show running-config
+R1#copy running-config startup-config
+
+Switch>enable
+Switchr#configure terminal
+Switch(config)#hostname S1
+S1(config)#enable secret class
+S1(config)#line console 0
+S1(config-line)#password 1234
+S1(config-line)#login
+S1(config-line)#exit
+
+S1(config)#interface vlan 1
+S1(config-if)#ip address 192.168.1.2 255.255.255.0
+S1(config-if)#no shutdown
+S1(config-if)#exit
+S1(config)#ip default-gateway 192.168.1.1
+S1(config)#ctrl+z
+S1#show running-config
+S1#copy running-config startup-config
+
+PC0:
+Ip address: 192.168.1.10
+Subnet mask: 255.255.255.0
+Default gateway: 192.168.1.1
+DNS server: 0.0.0.0
+PC0:
+Ip address: 192.168.1.11
+Subnet mask: 255.255.255.0
+Default gateway: 192.168.1.1
+DNS server: 0.0.0.0
+
+Password: 1234
+S1>enable
+Password: class
+S1#configure terminal
+S1(config)#ip domain-name ccna.com
+S1(config)#crypto key generate rsa
+How many bits? 1024
+
+Password: 1234
+R1>enable
+Password: class
+R1#configure terminal
+R1(config)#ip domain-name ccna.com
+R1(config)#crypto key generate rsa
+How many bits? 1024
+
+S1(config)#username admin secret 1234
+S1(config)#line vty 0 15
+S1(config-line)#login local
+S1(config-line)#transport input ssh
+S1(config-line)#ctrl+z
+
+R1(config)#username admin secret 1234
+R1(config)#line vty 0 15
+R1(config-line)#login local
+R1(config-line)#transport input ssh
+S1(config-line)#ctrl+z
+
+S1#copy running-config startup-config
+R1#copy running-config startup-config
+
+
+
+
+
